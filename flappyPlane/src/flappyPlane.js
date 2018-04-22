@@ -619,7 +619,7 @@ function start_flappyPlane(windowwidth, windowheight, container, assetsPath, arg
     assets_path = assetsPath;
     platform_tools = callback;
     game_mode = gamemode;
-    argsSaveGame = args.savedGame;
+    argsSaveGame = args.savedGame.data;
     this.game = new Phaser.Game(windowwidth, windowheight, Phaser.CANVAS, container);
 
     this.game.state.add('Init', FlappyPlane.Init);
