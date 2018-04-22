@@ -69,6 +69,8 @@ FlappyPlane.Preloader.prototype = {
         this.game.load.audio("explosion", assets_path + "assets/sounds/explosion.wav");
         this.game.load.audio("explosion1", assets_path + "assets/sounds/explosion1.wav");
 
+        Cookies.remove('FlappyPlaneSaveGame');
+
         var cookieImagesColors = Cookies.get('FlappyPlaneColors');
         if (cookieImagesColors) {
             FlappyPlane.imagesColors = JSON.parse(cookieImagesColors);
@@ -246,10 +248,15 @@ FlappyPlane.MainMenu.prototype = {
         changeColors.anchor.set(0.5);
         changeColors.scale.set(0.3);
 
-        var savedGameCookie = Cookies.get("FlappyPlaneSave");
-        if (savedGameCookie) {
-            var savedGame = JSON.parse(savedGameCookie);
+        var savedGameCookie = Cookies.get("FlappyPlaneSaveGame");
+        var savedGame;
 
+        if (savedGameCookie || argsSavedGame) {
+            if(savedGameCookie){
+                savedGame = JSON.parse(savedGameCookie);
+            }else{
+                savedGame = argsSavedGame;
+            }
             var loadGameText = this.game.add.bitmapText(this.game.width - 150, 35, "font", "Load Game", 48);
             loadGameText.anchor.set(0.5);
             loadGameText.inputEnabled = true;
@@ -414,8 +421,9 @@ FlappyPlane.Game.prototype = {
             var saveArray = {};
 
             saveArray.score = FlappyPlane.score;
-            //add all other vars
-            Cookies.set('FlappyPlaneSave', saveArray);
+            
+            platform_tools("SaveGame", FlappyPlane.score, 0, gameID, saveArray, false);
+            Cookies.set('FlappyPlaneSaveGame', saveArray);
         }
 
     },
@@ -605,11 +613,13 @@ var platform_tools;
 var assets_path;
 var game_mode;
 var gameID = 1;
+var argsSavedGame = undefined;
 
 function start_flappyPlane(windowwidth, windowheight, container, assetsPath, args, gamemode, callback) {
     assets_path = assetsPath;
     platform_tools = callback;
     game_mode = gamemode;
+    argsSaveGame = args.savedGame;
     this.game = new Phaser.Game(windowwidth, windowheight, Phaser.CANVAS, container);
 
     this.game.state.add('Init', FlappyPlane.Init);
