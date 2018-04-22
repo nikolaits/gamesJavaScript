@@ -265,13 +265,6 @@ FlappyPlane.MainMenu.prototype = {
         challengesText.events.onInputDown.add(function (e) {
             this.game.state.start("FriendsChallenges");
         }, this);
-
-        var liveScoreText = this.game.add.bitmapText(this.game.width / 2, this.game.height / 2 + 170, "font", "Show Live Score", 38);
-        liveScoreText.anchor.set(0.5);
-        liveScoreText.inputEnabled = true;
-        liveScoreText.events.onInputDown.add(function (e) {
-            $("#liveScoreWindow").data("kendoWindow").open();
-        }, this);
     },
     start: function () {
         this.game.state.start("HowToPlay");
@@ -566,7 +559,7 @@ FlappyPlane.GameOver.prototype = {
         this.game.state.start(state);
     },
     close: function () {
-        platform_tools("Close", score, 0, gameID, null, false);
+        platform_tools("Close", FlappyPlane.score, 0, gameID, null, false);
     }
 }
 
