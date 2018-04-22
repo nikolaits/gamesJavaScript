@@ -616,10 +616,18 @@ var gameID = 1;
 var argsSavedGame = undefined;
 
 function start_flappyPlane(windowwidth, windowheight, container, assetsPath, args, gamemode, callback) {
+    var inputData = undefined;
+    if(args.length > 0){
+        inputData = JSON.parse(args);
+        if(inputData.savedData){
+            argsSaveGame = inputData.savedGame.data;
+        }
+        
+    }
     assets_path = assetsPath;
     platform_tools = callback;
     game_mode = gamemode;
-    argsSaveGame = args.savedGame.data;
+   
     this.game = new Phaser.Game(windowwidth, windowheight, Phaser.CANVAS, container);
 
     this.game.state.add('Init', FlappyPlane.Init);
