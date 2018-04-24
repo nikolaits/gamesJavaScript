@@ -490,8 +490,7 @@ SpaceFlight.Game.prototype = {
                 }
         },
         friendChallengeHandler: function (args) {
-                console.log(args[0]);
-                console.log(args[1]);
+                //implement friend logic
         },
         paused: function () {
                 if (!SpaceFlight.ChallengingFriend && !SpaceFlight.friendChallenge) {
@@ -724,10 +723,8 @@ function start_spaceFlight(windowwidth, windowheight, container, assetsPath, arg
         this.game.state.add("GameOver", SpaceFlight.GameOver);
 
         this.game.state.start('Init');
-}
+};
 
 function destroy_spaceFlight() {
         document.getElementById("spaceFlight").remove();
-}
-
-start_spaceFlight(640, 960, "", "", "", "", function (e) { console.log(e) });
+};
