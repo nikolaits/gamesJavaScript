@@ -186,9 +186,9 @@ SpaceFlight.ChallengeFriend.prototype = {
                                 if (i < 20){
                                         var playerName = e.username.toString().substring(0, 10);
 
-                                        that.game.add.bitmapText(100, 100 + 30 * index, "font", playerName, 26);
+                                        that.game.add.bitmapText(100, 100 + 30 * i, "font", playerName, 26);
 
-                                        var acceptText = that.game.add.bitmapText(350, 100 + 30 * index, "font", "Challenge", 26);
+                                        var acceptText = that.game.add.bitmapText(350, 100 + 30 * i, "font", "Challenge", 26);
                                         acceptText.inputEnabled = true;
                                         acceptText.events.onInputDown.add(function (args) {
                                                 SpaceFlight.ChallengingName = this.playerName;
@@ -686,6 +686,7 @@ var assets_path;
 var gamemode;
 var gameID = 5;
 var argsSavedGame = undefined;
+var argsFriends = undefined;
 
 function start_spaceFlight(windowwidth, windowheight, container, assetsPath, args, gamemode, callback) {
         var inputData = undefined;
@@ -693,6 +694,9 @@ function start_spaceFlight(windowwidth, windowheight, container, assetsPath, arg
                 inputData = JSON.parse(args);
                 if (inputData.savedGame) {
                         argsSavedGame = inputData.savedGame.data;
+                }
+                if(inputData.friends){
+                        argsFriends = inputData.friends;
                 }
 
         }
