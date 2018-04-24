@@ -361,7 +361,7 @@ SpaceFlight.Game.prototype = {
                 var rightLine = this.game.add.tileSprite(this.game.width - this.laneWidth - this.lineWidth, 0, this.lineWidth, this.game.height, "particle");
                 this.SpaceShipGroup = this.game.add.group();
                 this.collectibleGroup = this.game.add.group();
-                this.scoreText = this.game.add.bitmapText(this.game.width / 2, 40, "font", "0", 120)
+                this.scoreText = this.game.add.bitmapText(this.game.width / 2, 40, "font", SpaceFlight.score.toString(), 120)
                 this.scoreText.anchor.x = 0.5;
                 for (var i = 0; i < 2; i++) {
                         SpaceFlight.spaceships[i] = this.game.add.sprite(0, this.game.height - 120, "spaceship" + i);
@@ -701,8 +701,8 @@ function start_spaceFlight(windowwidth, windowheight, container, assetsPath, arg
         var inputData = undefined;
         if (args.length > 0) {
                 inputData = JSON.parse(args);
-                if (inputData.savedData) {
-                        argsSaveGame = inputData.savedGame.data;
+                if (inputData.savedGame) {
+                        argsSavedGame = inputData.savedGame.data;
                 }
 
         }

@@ -628,8 +628,8 @@ function start_flappyPlane(windowwidth, windowheight, container, assetsPath, arg
     var inputData = undefined;
     if(args.length > 0){
         inputData = JSON.parse(args);
-        if(inputData.savedData){
-            argsSaveGame = inputData.savedGame.data;
+        if(inputData.savedGame){
+            argsSavedGame = inputData.savedGame.data;
         }
         
     }
