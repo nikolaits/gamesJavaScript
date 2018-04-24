@@ -17,12 +17,6 @@ myarr.name2 = 15;
 myarr.name3 = 20;
 myarr.name123456789 = 20;
 Cookies.set("FlappyPlaneFriendsChallenges", myarr);
-
-var myfrarr = [];
-myfrarr.push("Name1");
-myfrarr.push("Name2");
-myfrarr.push("Name3");
-Cookies.set("FlappyPlaneFriends", myfrarr);
 // remove top
 
 FlappyPlane.Init = function () { };
@@ -190,29 +184,25 @@ FlappyPlane.ChallengeFriend = function () { };
 
 FlappyPlane.ChallengeFriend.prototype = {
     create: function () {
-        var friendsCookie = Cookies.get("FlappyPlaneFriends");
-        if (friendsCookie) {
-            var friendsChallenges = JSON.parse(friendsCookie);
-            var index = 0;
+        if (argsFriends) {
+            var friendsChallenges = argsFriends;
             var that = this;
 
-            $.each(friendsChallenges, function (i, e) {
-                index++;
-                if (index > 20) return;
+            friendsChallenges.forEach(function(e,i){
+                if (i < 20){
+                    var playerName = e.username.toString().substring(0, 10);
 
-                var playerName = e.toString().substring(0, 10);
+                    that.game.add.bitmapText(100, 100 + 30 * i, "font", playerName, 26);
 
-                that.game.add.bitmapText(100, 100 + 30 * index, "font", playerName, 26);
+                    var acceptText = that.game.add.bitmapText(350, 100 + 30 * i, "font", "Challenge", 26);
+                    acceptText.inputEnabled = true;
+                    acceptText.events.onInputDown.add(function (args) {
+                        FlappyPlane.ChallengingName = this.playerName;
+                        FlappyPlane.ChallengingFriend = true;
 
-                var acceptText = that.game.add.bitmapText(350, 100 + 30 * index, "font", "Challenge", 26);
-                acceptText.inputEnabled = true;
-                acceptText.events.onInputDown.add(function (args) {
-                    FlappyPlane.ChallengingName = this.playerName;
-                    FlappyPlane.ChallengingFriend = true;
-
-                    this.scope.game.state.start("Game");
-                }, { playerName: playerName, scope: that });
-
+                        this.scope.game.state.start("Game");
+                    }, { playerName: playerName, scope: that });              
+                }
             });
         } else {
             var noChallengesText = this.game.add.bitmapText(this.game.width / 2, this.game.height / 2, "font", "no friends available", 36);
@@ -623,6 +613,7 @@ var assets_path;
 var game_mode;
 var gameID = 1;
 var argsSavedGame = undefined;
+var argsFriends = undefined;
 
 function start_flappyPlane(windowwidth, windowheight, container, assetsPath, args, gamemode, callback) {
     var inputData = undefined;
@@ -630,6 +621,9 @@ function start_flappyPlane(windowwidth, windowheight, container, assetsPath, arg
         inputData = JSON.parse(args);
         if(inputData.savedGame){
             argsSavedGame = inputData.savedGame.data;
+        }
+        if(inputData.friends){
+            argsFriends = inputData.friends;
         }
         
     }
