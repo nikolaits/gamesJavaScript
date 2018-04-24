@@ -363,6 +363,9 @@ FlappyPlane.Game.prototype = {
         this.pauseButton.anchor.set(0.5);
         this.pauseButton.scale.set(0.15);
         this.pauseButton.tint = "0xff0000";
+        if(FlappyPlane.ChallengingFriend || FlappyPlane.friendChallenge){
+            this.pauseButton.visible = false;
+        }
 
         this.pauseImage = this.game.add.sprite(this.game.width / 2, this.game.height / 2, "paused");
         this.pauseImage.anchor.set(0.5);
@@ -390,14 +393,18 @@ FlappyPlane.Game.prototype = {
         args[1].y = args[0];
     },
     paused: function () {
-        this.pauseImage.visible = true;
-        this.resumeText.visible = true;
-        this.saveGame.visible = true;
+        if(!FlappyPlane.ChallengingFriend && !FlappyPlane.friendChallenge){
+            this.pauseImage.visible = true;
+            this.resumeText.visible = true;
+            this.saveGame.visible = true;
+        }
     },
     resumed: function () {
-        this.pauseImage.visible = false;
-        this.resumeText.visible = false;
-        this.saveGame.visible = false;
+        if(!FlappyPlane.ChallengingFriend && !FlappyPlane.friendChallenge){
+            this.pauseImage.visible = false;
+            this.resumeText.visible = false;
+            this.saveGame.visible = false;
+        }
     },
     checkPauseButtons: function (e) {
         var resumeTextX = this.resumeText.x;
@@ -440,6 +447,8 @@ FlappyPlane.Game.prototype = {
         var hole = this.game.rnd.between(1, 6);
         FlappyPlane.score += 1;
         this.scoreText.text = FlappyPlane.score.toString();
+        platform_tools("LiveScore", FlappyPlane.score, 0, gameID, null, false);
+
         for (var i = 0; i < 10; i++) {
             if ((i === hole) || (i === hole + 1) || (i === hole + 2)) continue;
             var color = FlappyPlane.imagesColors[3].tint;
@@ -515,7 +524,7 @@ FlappyPlane.GameOver.prototype = {
             this.game.add.bitmapText(this.game.width / 2, 200, "font", "Your score", 48).anchor.x = 0.5;
             this.game.add.bitmapText(this.game.width / 2, 300, "font", FlappyPlane.score.toString(), 72).anchor.x = 0.5;
 
-            var playButton = this.game.add.button(this.game.width / 2, this.game.height - 150, "playbutton", this.startGame);
+            var playButton = this.game.add.button(this.game.width / 2, this.game.height - 150, "playbutton", this.startGame.bind(this, "Game"));
             playButton.anchor.set(0.5);
             playButton.tint = FlappyPlane.imagesColors[0].tint;
             var tween = this.game.add.tween(playButton).to({ width: 220, height: 220 }, 1500, "Linear", true, 0, -1);
