@@ -3,21 +3,13 @@ var FlappyPlane = {
     imagesColors: [],
     friendChallenge: false,
     friendName: "",
+    friendUID: "",
     friendScore: 0,
     friendChallengeWin: false,
     friendChallengeAlive: false,
     ChallengingFriend: false,
     ChallengingName: ""
 };
-
-// remove bot when server callbacks are implemented
-var myarr = {};
-myarr.name1 = 1;
-myarr.name2 = 15;
-myarr.name3 = 20;
-myarr.name123456789 = 20;
-Cookies.set("FlappyPlaneFriendsChallenges", myarr);
-// remove top
 
 FlappyPlane.Init = function () { };
 
@@ -131,33 +123,32 @@ FlappyPlane.FriendsChallenges = function () { };
 
 FlappyPlane.FriendsChallenges.prototype = {
     create: function () {
-        var friendsChallengesCookie = Cookies.get("FlappyPlaneFriendsChallenges");
-        if (friendsChallengesCookie) {
-            var friendsChallenges = JSON.parse(friendsChallengesCookie);
+        if (argsChallenges) {
+            var friendsChallenges = argsChallenges;            
             var index = 0;
             var that = this;
 
-            $.each(friendsChallenges, function (i, e) {
-                index++;
-                if (index > 20) return;
+            friendsChallenges.forEach(function(e,i){
+                if(i<20){
+                    var playerName = e.friendusername.toString().substring(0, 10);
+                    var playerScore = e.friendscore.toString();
+                    var playerUID = e.frienduid.toString();
 
-                var playerName = i.toString().substring(0, 10);
-                var playerScore = e.toString();
+                    that.game.add.bitmapText(50, 100 + 30 * i, "font", playerName, 26);
+                    that.game.add.bitmapText(250, 100 + 30 * i, "font", playerScore, 26);
 
-                that.game.add.bitmapText(50, 100 + 30 * index, "font", playerName, 26);
-                that.game.add.bitmapText(250, 100 + 30 * index, "font", playerScore, 26);
+                    var acceptText = that.game.add.bitmapText(450, 100 + 30 * i, "font", "accept", 26);
+                    acceptText.inputEnabled = true;
+                    acceptText.events.onInputDown.add(function (args) {
+                        FlappyPlane.friendChallenge = true;
+                        FlappyPlane.friendChallengeAlive = true;
+                        FlappyPlane.friendName = this.playerName;
+                        FlappyPlane.friendScore = this.playerScore;
+                        FlappyPlane.friendUID = this.playerUID;
 
-                var acceptText = that.game.add.bitmapText(450, 100 + 30 * index, "font", "accept", 26);
-                acceptText.inputEnabled = true;
-                acceptText.events.onInputDown.add(function (args) {
-                    FlappyPlane.friendChallenge = true;
-                    FlappyPlane.friendChallengeAlive = true;
-                    FlappyPlane.friendName = this.playerName;
-                    FlappyPlane.friendScore = this.playerScore;
-
-                    this.scope.game.state.start("Game");
-                }, { playerName: playerName, playerScore: playerScore, scope: that });
-
+                        this.scope.game.state.start("Game");
+                    }, { playerName: playerName, playerScore: playerScore, playerUID: playerUID , scope: that });          
+                }
             });
         } else {
             var noChallengesText = this.game.add.bitmapText(this.game.width / 2, this.game.height / 2, "font", "no challenges available", 36);
@@ -190,18 +181,20 @@ FlappyPlane.ChallengeFriend.prototype = {
 
             friendsChallenges.forEach(function(e,i){
                 if (i < 20){
-                    var playerName = e.username.toString().substring(0, 10);
+                    var playerName = e.username.toString();
+                    var playerUID = e.uid.toString();
 
-                    that.game.add.bitmapText(100, 100 + 30 * i, "font", playerName, 26);
+                    that.game.add.bitmapText(100, 100 + 30 * i, "font", playerName.substring(0, 10), 26);
 
                     var acceptText = that.game.add.bitmapText(350, 100 + 30 * i, "font", "Challenge", 26);
                     acceptText.inputEnabled = true;
                     acceptText.events.onInputDown.add(function (args) {
                         FlappyPlane.ChallengingName = this.playerName;
                         FlappyPlane.ChallengingFriend = true;
+                        FlappyPlane.friendUID = this.playerUID;
 
                         this.scope.game.state.start("Game");
-                    }, { playerName: playerName, scope: that });              
+                    }, { playerName: playerName, playerUID: playerUID, scope: that });              
                 }
             });
         } else {
@@ -304,8 +297,8 @@ FlappyPlane.Game = function () { };
 
 FlappyPlane.Game.prototype = {
     create: function () {
-        this.heliLoop = this.game.add.audio("heliLoop");
-        this.heliLoop.loopFull(1);
+        //uncommentthis  this.heliLoop = this.game.add.audio("heliLoop");
+        //uncommentthis  this.heliLoop.loopFull(1);
         this.game.physics.startSystem(Phaser.Physics.ARCADE);
         var background = this.game.add.sprite(0, 0, "background");
         background.tint = FlappyPlane.imagesColors[5].tint;
@@ -461,20 +454,20 @@ FlappyPlane.Game.prototype = {
             localPlane.alive = false;
             this.game.time.events.remove(this.addBarrierTime);
             this.pauseButton.visible = false;
-            this.heliLoop.stop();
+            //uncommentthi  this.heliLoop.stop();
         } else {
             var localPlane = this.planeFriend;
         }
-        var explosionSound1 = this.game.add.audio("explosion1");
-        explosionSound1.play();
+        //uncommentthis  var explosionSound1 = this.game.add.audio("explosion1");
+        //uncommentthis  explosionSound1.play();
         var destroyTween = this.game.add.tween(localPlane).to({
             x: localPlane.x + this.game.rnd.between(50, 150),
             y: localPlane.y - this.game.rnd.between(-50, 50),
             rotation: 20
         }, 1500, Phaser.Easing.Linear.None, true);
         destroyTween.onComplete.add(function () {
-            var explosionSound = this.game.add.audio("explosion");
-            explosionSound.play();
+            //uncommentthis  var explosionSound = this.game.add.audio("explosion");
+            //uncommentthis  explosionSound.play();
             this.expl = this.game.add.sprite(localPlane.x, localPlane.y, "explosion");
             this.expl.tint = FlappyPlane.imagesColors[4].tint;
             this.expl.scale.setTo(2);
@@ -533,16 +526,20 @@ FlappyPlane.GameOver.prototype = {
                 }
                 this.game.add.bitmapText(this.game.width / 2, 450, "font", "Challenger Score: " + (FlappyPlane.friendScore).toString(), 38).anchor.x = 0.5;
 
-                //
-                // add server callback
-                //
+                var challengeArray = {};
+                challengeArray.oldScore = FlappyPlane.friendScore;
+                challengeArray.uid = FlappyPlane.friendUID;
+
+                platform_tools("ChallengeComplete", FlappyPlane.score, 0, gameID, challengeArray, false);
 
             } else if (FlappyPlane.ChallengingFriend) {
                 this.game.add.bitmapText(this.game.width / 2, 450, "font", (FlappyPlane.ChallengingName).toString() + " challenged", 38).anchor.x = 0.5;
-
-                //
-                // add server callback
-                //
+                
+                var challengeArray = {};
+                challengeArray.username = FlappyPlane.ChallengingName;
+                challengeArray.useruid = FlappyPlane.friendUID;
+                
+                platform_tools("ChallengeFriend", FlappyPlane.score, 0, gameID, challengeArray, false);
 
             } else if (FlappyPlane.score >= 40) {
                 platform_tools("GameOver", FlappyPlane.score, 0, gameID, null, true);
@@ -559,9 +556,12 @@ FlappyPlane.GameOver.prototype = {
         FlappyPlane.score = -1;
         FlappyPlane.friendChallenge = false;   
         FlappyPlane.friendName = "";
+        FlappyPlane.friendUID = "";
         FlappyPlane.friendScore = 0;
         FlappyPlane.friendChallengeWin = false;
-        FlappyPlane.friendChallengeAlive = false;
+        FlappyPlane.friendChallengeAlive = false;        
+        FlappyPlane.ChallengingFriend = false;
+        FlappyPlane.ChallengingName = "";
 
         this.game.state.start(state);
     },
@@ -614,6 +614,7 @@ var game_mode;
 var gameID = 1;
 var argsSavedGame = undefined;
 var argsFriends = undefined;
+var argsChallenges = undefined;
 
 function start_flappyPlane(windowwidth, windowheight, container, assetsPath, args, gamemode, callback) {
     var inputData = undefined;
@@ -625,7 +626,9 @@ function start_flappyPlane(windowwidth, windowheight, container, assetsPath, arg
         if(inputData.friends){
             argsFriends = inputData.friends;
         }
-        
+        if(inputData.challenges){
+            argsChallenges = inputData.challenges;
+        }
     }
     assets_path = assetsPath;
     platform_tools = callback;
