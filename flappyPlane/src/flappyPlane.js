@@ -130,11 +130,11 @@ FlappyPlane.FriendsChallenges.prototype = {
 
             friendsChallenges.forEach(function(e,i){
                 if(i<20){
-                    var playerName = e.friendusername.toString().substring(0, 10);
+                    var playerName = e.friendusername.toString();
                     var playerScore = e.friendscore.toString();
                     var playerUID = e.frienduid.toString();
 
-                    that.game.add.bitmapText(50, 100 + 30 * i, "font", playerName, 26);
+                    that.game.add.bitmapText(50, 100 + 30 * i, "font", playerName.substring(0, 10), 26);
                     that.game.add.bitmapText(250, 100 + 30 * i, "font", playerScore, 26);
 
                     var acceptText = that.game.add.bitmapText(450, 100 + 30 * i, "font", "accept", 26);

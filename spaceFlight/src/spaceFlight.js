@@ -5,21 +5,13 @@ var SpaceFlight = {
         imagesColors: [],
         friendChallenge: false,
         friendName: "",
+        friendUID: "",
         friendScore: 0,
         friendChallengeWin: false,
         friendChallengeAlive: false,
         ChallengingFriend: false,
         ChallengingName: ""
 };
-
-// remove bot when server callbacks are implemented
-var myarr = {};
-myarr.name1 = 1;
-myarr.name2 = 15;
-myarr.name3 = 20;
-myarr.name123456789 = 20;
-Cookies.set("SpaceFlightFriendsChallenges", myarr);
-// remove top
 
 SpaceFlight.Init = function () { };
 
@@ -125,33 +117,32 @@ SpaceFlight.FriendsChallenges = function () { };
 
 SpaceFlight.FriendsChallenges.prototype = {
         create: function () {
-                var friendsChallengesCookie = Cookies.get("SpaceFlightFriendsChallenges");
-                if (friendsChallengesCookie) {
-                        var friendsChallenges = JSON.parse(friendsChallengesCookie);
+                if (argsChallenges) {
+                        var friendsChallenges = argsChallenges;
                         var index = 0;
                         var that = this;
 
-                        $.each(friendsChallenges, function (i, e) {
-                                index++;
-                                if (index > 20) return;
+                        friendsChallenges.forEach(function (e, i) {
+                                if (i < 20) {
+                                        var playerName = e.friendusername.toString();
+                                        var playerScore = e.friendscore.toString();
+                                        var playerUID = e.frienduid.toString();
 
-                                var playerName = i.toString().substring(0, 10);
-                                var playerScore = e.toString();
+                                        that.game.add.bitmapText(50, 100 + 30 * i, "font", playerName.substring(0, 10), 26);
+                                        that.game.add.bitmapText(250, 100 + 30 * i, "font", playerScore, 26);
 
-                                that.game.add.bitmapText(50, 100 + 30 * index, "font", playerName, 26);
-                                that.game.add.bitmapText(250, 100 + 30 * index, "font", playerScore, 26);
+                                        var acceptText = that.game.add.bitmapText(450, 100 + 30 * i, "font", "accept", 26);
+                                        acceptText.inputEnabled = true;
+                                        acceptText.events.onInputDown.add(function (args) {
+                                                SpaceFlight.friendChallenge = true;
+                                                SpaceFlight.friendChallengeAlive = true;
+                                                SpaceFlight.friendName = this.playerName;
+                                                SpaceFlight.friendScore = this.playerScore;
+                                                SpaceFlight.friendUID = this.playerUID;
 
-                                var acceptText = that.game.add.bitmapText(450, 100 + 30 * index, "font", "accept", 26);
-                                acceptText.inputEnabled = true;
-                                acceptText.events.onInputDown.add(function (args) {
-                                        SpaceFlight.friendChallenge = true;
-                                        SpaceFlight.friendChallengeAlive = true;
-                                        SpaceFlight.friendName = this.playerName;
-                                        SpaceFlight.friendScore = this.playerScore;
-
-                                        this.scope.game.state.start("Game");
-                                }, { playerName: playerName, playerScore: playerScore, scope: that });
-
+                                                this.scope.game.state.start("Game");
+                                        }, { playerName: playerName, playerScore: playerScore, playerUID: playerUID, scope: that });
+                                }
                         });
                 } else {
                         var noChallengesText = this.game.add.bitmapText(this.game.width / 2, this.game.height / 2, "font", "no challenges available", 36);
@@ -182,20 +173,22 @@ SpaceFlight.ChallengeFriend.prototype = {
                         var friendsChallenges = argsFriends;
                         var that = this;
 
-                        friendsChallenges.forEach(function(e,i){
-                                if (i < 20){
-                                        var playerName = e.username.toString().substring(0, 10);
+                        friendsChallenges.forEach(function (e, i) {
+                                if (i < 20) {
+                                        var playerName = e.username.toString();
+                                        var playerUID = e.uid.toString();
 
-                                        that.game.add.bitmapText(100, 100 + 30 * i, "font", playerName, 26);
+                                        that.game.add.bitmapText(100, 100 + 30 * i, "font", playerName.substring(0, 10), 26);
 
                                         var acceptText = that.game.add.bitmapText(350, 100 + 30 * i, "font", "Challenge", 26);
                                         acceptText.inputEnabled = true;
                                         acceptText.events.onInputDown.add(function (args) {
                                                 SpaceFlight.ChallengingName = this.playerName;
                                                 SpaceFlight.ChallengingFriend = true;
+                                                SpaceFlight.friendUID = this.playerUID;
 
                                                 this.scope.game.state.start("Game");
-                                        }, { playerName: playerName, scope: that });
+                                        }, { playerName: playerName, playerUID: playerUID, scope: that });
                                 }
                         });
                 } else {
@@ -584,16 +577,20 @@ SpaceFlight.GameOver.prototype = {
                                 }
                                 this.game.add.bitmapText(this.game.width / 2, 550, "font", "Challenger Score: " + (SpaceFlight.friendScore).toString(), 38).anchor.x = 0.5;
 
-                                //
-                                // add server callback
-                                //
+                                var challengeArray = {};
+                                challengeArray.oldScore = SpaceFlight.friendScore;
+                                challengeArray.uid = SpaceFlight.friendUID;
+
+                                platform_tools("ChallengeComplete", SpaceFlight.score, 0, gameID, challengeArray, false);
 
                         } else if (SpaceFlight.ChallengingFriend) {
                                 this.game.add.bitmapText(this.game.width / 2, 550, "font", (SpaceFlight.ChallengingName).toString() + " challenged", 38).anchor.x = 0.5;
 
-                                //
-                                // add server callback
-                                //
+                                var challengeArray = {};
+                                challengeArray.username = SpaceFlight.ChallengingName;
+                                challengeArray.useruid = SpaceFlight.friendUID;
+
+                                platform_tools("ChallengeFriend", SpaceFlight.score, 0, gameID, challengeArray, false);
 
                         } else if (SpaceFlight.score >= 500) {
                                 platform_tools("GameOver", SpaceFlight.score, 0, gameID, null, true);
@@ -607,12 +604,15 @@ SpaceFlight.GameOver.prototype = {
                 }
         },
         startGame: function (state) {
-                SpaceFlight.score = 0;
+                SpaceFlight.score = -1;
                 SpaceFlight.friendChallenge = false;
                 SpaceFlight.friendName = "";
+                SpaceFlight.friendUID = "";
                 SpaceFlight.friendScore = 0;
                 SpaceFlight.friendChallengeWin = false;
                 SpaceFlight.friendChallengeAlive = false;
+                SpaceFlight.ChallengingFriend = false;
+                SpaceFlight.ChallengingName = "";
 
                 this.game.state.start(state);
         },
@@ -687,6 +687,7 @@ var gamemode;
 var gameID = 5;
 var argsSavedGame = undefined;
 var argsFriends = undefined;
+var argsChallenges = undefined;
 
 function start_spaceFlight(windowwidth, windowheight, container, assetsPath, args, gamemode, callback) {
         var inputData = undefined;
@@ -695,10 +696,12 @@ function start_spaceFlight(windowwidth, windowheight, container, assetsPath, arg
                 if (inputData.savedGame) {
                         argsSavedGame = inputData.savedGame.data;
                 }
-                if(inputData.friends){
+                if (inputData.friends) {
                         argsFriends = inputData.friends;
                 }
-
+                if (inputData.challenges) {
+                        argsChallenges = inputData.challenges;
+                }
         }
         assets_path = assetsPath;
         platform_tools = callback;
