@@ -75,9 +75,9 @@ Asteroids.Preloader.prototype = {
     create: function () {
         if (game_mode === "seasonMode"){
             Asteroids.ChallengingFriend = true;
-            this.game.state.start("Game");
-        }else{
             this.game.state.start("Game", true, false, 1, 10, 3);
+        }else{
+            this.game.state.start("MainMenu");
         }
     }
 };
