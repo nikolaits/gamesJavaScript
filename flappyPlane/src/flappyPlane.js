@@ -494,7 +494,7 @@ FlappyPlane.Game.prototype = {
 FlappyPlane.GameOver = function () { };
 FlappyPlane.GameOver.prototype = {
     create: function () {
-        if(game_mode!=="seasonMode"){
+        if (game_mode === "casualMode") {
             this.game.physics.startSystem(Phaser.Physics.ARCADE);
             var background = this.game.add.sprite(0, 0, "background");
             background.tint = FlappyPlane.imagesColors[5].tint;
@@ -541,15 +541,14 @@ FlappyPlane.GameOver.prototype = {
                 
                 platform_tools("ChallengeFriend", FlappyPlane.score, 0, gameID, challengeArray, false);
 
-            } else if (FlappyPlane.score >= 40) {
+            } else if (FlappyPlane.score >= game_score_weight) {
                 platform_tools("GameOver", FlappyPlane.score, 0, gameID, null, true);
             } else {
                 platform_tools("GameOver", FlappyPlane.score, 0, gameID, null, false);
             }
-        }else{
-            //
-            //implement sever callback for season mode;
-            //
+        } else if (game_mode === "seasonMode"){
+            var virtualScore = FlappyPlane.score / game_score_weight * 100;
+            platform_tools("GameOver", virtualScore, 0, gameID, null, false);
         }
     },
     startGame: function (state) {
@@ -612,6 +611,7 @@ var platform_tools;
 var assets_path;
 var game_mode;
 var gameID = 1;
+var game_score_weight = 40;
 var argsSavedGame = undefined;
 var argsFriends = undefined;
 var argsChallenges = undefined;
@@ -649,6 +649,8 @@ function start_flappyPlane(windowwidth, windowheight, container, assetsPath, arg
     this.game.state.start('Init');
 }
 
-function destroy_flappyPlane() {
+function destroy_flappyPlane() {    
+    game_mode = "destroy";
+    this.game.state.start("GameOver");
     document.getElementById("flappyPlane").remove();
 }

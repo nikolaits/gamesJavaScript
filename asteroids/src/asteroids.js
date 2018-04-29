@@ -672,7 +672,7 @@ Asteroids.GameOver = function () { };
 
 Asteroids.GameOver.prototype = {
     create: function () {
-        if (game_mode !== "seasonMode") {
+        if (game_mode === "casualMode") {
             var closeButton = this.game.add.button(35, 35, "close", this.close);
             closeButton.anchor.set(0.5);
             closeButton.scale.set(0.15);
@@ -714,15 +714,14 @@ Asteroids.GameOver.prototype = {
 
                 platform_tools("ChallengeFriend", Asteroids.score, 0, gameID, challengeArray, false);
 
-            } else if (Asteroids.score >= 200) {
+            } else if (Asteroids.score >= game_score_weight) {
                 platform_tools("GameOver", Asteroids.score, 0, gameID, null, true);
             } else {
                 platform_tools("GameOver", Asteroids.score, 0, gameID, null, false);
             }
-        } else {
-            //
-            //implement sever callback for season mode;
-            //
+        } else if (game_mode === "seasonMode"){
+            var virtualScore = Asteroids.score / game_score_weight * 100;
+            platform_tools("GameOver", virtualScore, 0, gameID, null, false);
         }
     },
     startGame: function (state) {
@@ -771,6 +770,7 @@ var platform_tools;
 var assets_path;
 var game_mode;
 var gameID = 2;
+var game_score_weight = 200;
 var argsSavedGame = undefined;
 var argsFriends = undefined;
 var argsChallenges = undefined;
@@ -808,5 +808,7 @@ function start_asteroids(windowwidth, windowheight, container, assetsPath, args,
 }
 
 function destroy_asteroids() {
+    game_mode = "destroy";
+    this.game.state.start("GameOver");
     document.getElementById("asteroids").remove();
 }

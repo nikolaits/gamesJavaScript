@@ -723,7 +723,7 @@ CrazyAliens.GameOver = function () { };
 
 CrazyAliens.GameOver.prototype = {
     create: function () {
-        if (game_mode !== "seasonMode") {
+        if (game_mode === "casualMode") {
             var closeButton = this.game.add.button(35, 35, "close", this.close);
             closeButton.anchor.set(0.5);
             closeButton.scale.set(0.15);
@@ -765,15 +765,14 @@ CrazyAliens.GameOver.prototype = {
 
                 platform_tools("ChallengeFriend", CrazyAliens.score, 0, gameID, challengeArray, false);
 
-            } else if (CrazyAliens.score >= 3000) {
+            } else if (CrazyAliens.score >= game_score_weight) {
                 platform_tools("GameOver", CrazyAliens.score, 0, gameID, null, true);
             } else {
                 platform_tools("GameOver", CrazyAliens.score, 0, gameID, null, false);
             }
-        } else {
-            //
-            //implement sever callback for season mode;
-            //
+        } else if (game_mode === "seasonMode"){
+            var virtualScore = CrazyAliens.score / game_score_weight * 100;            
+            platform_tools("GameOver", virtualScore, 0, gameID, null, false);
         }
     },
     startGame: function (state) {
@@ -822,6 +821,7 @@ var platform_tools;
 var assets_path;
 var game_mode;
 var gameID = 3;
+var game_score_weight = 3000;
 var argsSavedGame = undefined;
 var argsFriends = undefined;
 var argsChallenges = undefined;
@@ -858,6 +858,8 @@ function start_crazyAliens(windowwidth, windowheight, container, assetsPath, arg
     this.game.state.start('Init');
 }
 
-function destroy_crazyAliens() {
+function destroy_crazyAliens() {    
+    game_mode = "destroy";
+    this.game.state.start("GameOver");
     document.getElementById("crazyAliens").remove();
 }
