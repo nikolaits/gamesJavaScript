@@ -80,7 +80,12 @@ CrazyAliens.Preloader.prototype = {
         }
     },
     create: function () {
-        this.game.state.start('MainMenu');
+        if (game_mode === "seasonMode"){
+            CrazyAliens.ChallengingFriend = true;
+            this.game.state.start("Game");
+        }else{
+            this.game.state.start("MainMenu");
+        }
     }
 };
 
@@ -816,10 +821,10 @@ function rgbToHexCrazyAliens(r, g, b) {
     return "0x" + componentToHexCrazyAliens(r) + componentToHexCrazyAliens(g) + componentToHexCrazyAliens(b);
 };
 
-var game;
-var platform_tools;
-var assets_path;
-var game_mode;
+var game = null;
+var platform_tools = null;
+var assets_path = "";
+var game_mode = "";
 var gameID = 3;
 var game_score_weight = 3000;
 var argsSavedGame = undefined;
@@ -861,5 +866,26 @@ function start_crazyAliens(windowwidth, windowheight, container, assetsPath, arg
 function destroy_crazyAliens() {    
     game_mode = "destroy";
     this.game.state.start("GameOver");
+
+    CrazyAliens.score = 0;
+    CrazyAliens.friendChallenge = false;
+    CrazyAliens.friendName = "";
+    CrazyAliens.friendUID = "";
+    CrazyAliens.friendScore = 0;
+    CrazyAliens.friendChallengeWin = false;
+    CrazyAliens.friendChallengeAlive = false;
+    CrazyAliens.ChallengingFriend = false;
+    CrazyAliens.ChallengingName = "";
+
+    game = null;
+    platform_tools = null;
+    assets_path = "";
+    game_mode = "";
+    gameID = 3;
+    game_score_weight = 3000;
+    argsSavedGame = undefined;
+    argsFriends = undefined;
+    argsChallenges = undefined;
+
     document.getElementById("crazyAliens").remove();
 }

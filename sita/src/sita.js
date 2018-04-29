@@ -61,9 +61,13 @@ SITA.Preloader.prototype = {
             SITA.imagesColors.push({ image: "bullet", tint: "0xffffff" });
         }
     },
-
     create: function () {
-        this.game.state.start("MainMenu");
+        if (game_mode === "seasonMode"){
+            SITA.ChallengingFriend = true;
+            this.game.state.start("Game");
+        }else{
+            this.game.state.start("MainMenu");
+        }
     }
 };
 
@@ -637,10 +641,10 @@ function rgbToHexSITA(r, g, b) {
     return "0x" + componentToHexSITA(r) + componentToHexSITA(g) + componentToHexSITA(b);
 };
 
-var game;
-var platform_tools;
-var assets_path;
-var game_mode;
+var game = null;
+var platform_tools = null;
+var assets_path = "";
+var game_mode = "";
 var gameID = 4;
 var game_score_weight = 35;
 var argsSavedGame = undefined;
@@ -682,5 +686,27 @@ function start_sita(windowwidth, windowheight, container, assetsPath, args, game
 function destroy_sita() {
     game_mode = "destroy";
     this.game.state.start("GameOver");
+
+    SITA.score = 0;
+    SITA.timeRemaining = 11;
+    SITA.friendChallenge = false;   
+    SITA.friendName = "";
+    SITA.friendUID = "";
+    SITA.friendScore = 0;
+    SITA.friendChallengeWin = false;
+    SITA.friendChallengeAlive = false;        
+    SITA.ChallengingFriend = false;
+    SITA.ChallengingName = "";
+
+    game = null;
+    platform_tools = null;
+    assets_path = "";
+    game_mode = "";
+    gameID = 4;
+    game_score_weight = 35;
+    argsSavedGame = undefined;
+    argsFriends = undefined;
+    argsChallenges = undefined;
+
     document.getElementById("sita").remove();
 }

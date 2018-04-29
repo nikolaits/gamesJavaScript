@@ -70,7 +70,12 @@ FlappyPlane.Preloader.prototype = {
         }
     },
     create: function () {
-        this.game.state.start("MainMenu");
+        if (game_mode === "seasonMode"){
+            FlappyPlane.ChallengingFriend = true;
+            this.game.state.start("Game");
+        }else{
+            this.game.state.start("MainMenu");
+        }
     }
 };
 
@@ -606,10 +611,10 @@ function rgbToHexFlappyPlane(r, g, b) {
     return "0x" + componentToHexFlappyPlane(r) + componentToHexFlappyPlane(g) + componentToHexFlappyPlane(b);
 };
 
-var game;
-var platform_tools;
-var assets_path;
-var game_mode;
+var game = null;
+var platform_tools = null;
+var assets_path = "";
+var game_mode = "";
 var gameID = 1;
 var game_score_weight = 40;
 var argsSavedGame = undefined;
@@ -652,5 +657,26 @@ function start_flappyPlane(windowwidth, windowheight, container, assetsPath, arg
 function destroy_flappyPlane() {    
     game_mode = "destroy";
     this.game.state.start("GameOver");
+
+    FlappyPlane.score = -1;
+    FlappyPlane.friendChallenge = false;   
+    FlappyPlane.friendName = "";
+    FlappyPlane.friendUID = "";
+    FlappyPlane.friendScore = 0;
+    FlappyPlane.friendChallengeWin = false;
+    FlappyPlane.friendChallengeAlive = false;        
+    FlappyPlane.ChallengingFriend = false;
+    FlappyPlane.ChallengingName = "";
+
+    game = null;
+    platform_tools = null;
+    assets_path = "";
+    game_mode = "";
+    gameID = 1;
+    game_score_weight = 40;
+    argsSavedGame = undefined;
+    argsFriends = undefined;
+    argsChallenges = undefined;
+
     document.getElementById("flappyPlane").remove();
 }

@@ -72,9 +72,13 @@ Asteroids.Preloader.prototype = {
             Asteroids.imagesColors.push({ image: "live", tint: "0xffffff" });
         }
     },
-
     create: function () {
-        this.state.start('MainMenu');
+        if (game_mode === "seasonMode"){
+            Asteroids.ChallengingFriend = true;
+            this.game.state.start("Game");
+        }else{
+            this.game.state.start("MainMenu");
+        }
     }
 };
 
@@ -765,10 +769,10 @@ function rgbToHexAsteroids(r, g, b) {
     return "0x" + componentToHexAsteroids(r) + componentToHexAsteroids(g) + componentToHexAsteroids(b);
 };
 
-var game;
-var platform_tools;
-var assets_path;
-var game_mode;
+var game = null;
+var platform_tools = null;
+var assets_path = "";
+var game_mode = "";
 var gameID = 2;
 var game_score_weight = 200;
 var argsSavedGame = undefined;
@@ -810,5 +814,26 @@ function start_asteroids(windowwidth, windowheight, container, assetsPath, args,
 function destroy_asteroids() {
     game_mode = "destroy";
     this.game.state.start("GameOver");
+
+    Asteroids.score = 0;
+    Asteroids.friendChallenge = false;
+    Asteroids.friendName = "";
+    Asteroids.friendUID = "";
+    Asteroids.friendScore = 0;
+    Asteroids.friendChallengeWin = false;
+    Asteroids.friendChallengeAlive = false;
+    Asteroids.ChallengingFriend = false;
+    Asteroids.ChallengingName = "";
+
+    game = null;
+    platform_tools = null;
+    assets_path = "";
+    game_mode = "";
+    gameID = 2;
+    game_score_weight = 200;
+    argsSavedGame = undefined;
+    argsFriends = undefined;
+    argsChallenges = undefined;
+
     document.getElementById("asteroids").remove();
 }

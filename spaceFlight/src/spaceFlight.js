@@ -64,7 +64,12 @@ SpaceFlight.Preloader.prototype = {
         }
     },
     create: function () {
-        this.game.state.start("MainMenu");
+        if (game_mode === "seasonMode"){
+            SpaceFlight.ChallengingFriend = true;
+            this.game.state.start("Game");
+        }else{
+            this.game.state.start("MainMenu");
+        }
     }
 };
 
@@ -679,10 +684,10 @@ function rgbToHexSpaceFlight(r, g, b) {
     return "0x" + componentToHexSpaceFlight(r) + componentToHexSpaceFlight(g) + componentToHexSpaceFlight(b);
 };
 
-var game;
-var platform_tools;
-var assets_path;
-var gamemode;
+var game = null;
+var platform_tools = null;
+var assets_path = "";
+var game_mode = "";
 var gameID = 5;
 var game_score_weight = 500;
 var argsSavedGame = undefined;
@@ -725,5 +730,26 @@ function start_spaceFlight(windowwidth, windowheight, container, assetsPath, arg
 function destroy_spaceFlight() {
     game_mode = "destroy";
     this.game.state.start("GameOver");
+
+    SpaceFlight.score = -1;
+    SpaceFlight.friendChallenge = false;
+    SpaceFlight.friendName = "";
+    SpaceFlight.friendUID = "";
+    SpaceFlight.friendScore = 0;
+    SpaceFlight.friendChallengeWin = false;
+    SpaceFlight.friendChallengeAlive = false;
+    SpaceFlight.ChallengingFriend = false;
+    SpaceFlight.ChallengingName = "";
+
+    game = null;
+    platform_tools = null;
+    assets_path = "";
+    game_mode = "";
+    gameID = 5;
+    game_score_weight = 500;
+    argsSavedGame = undefined;
+    argsFriends = undefined;
+    argsChallenges = undefined;
+
     document.getElementById("spaceFlight").remove();
 };
