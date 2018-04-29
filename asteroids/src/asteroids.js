@@ -77,7 +77,7 @@ Asteroids.Preloader.prototype = {
             Asteroids.ChallengingFriend = true;
             this.game.state.start("Game");
         }else{
-            this.game.state.start("MainMenu");
+            this.game.state.start("Game", true, false, 1, 10, 3);
         }
     }
 };
@@ -264,7 +264,6 @@ Asteroids.MainMenu.prototype = {
             this.game.state.start("FriendsChallenges");
         }, this);
     },
-
     start: function () {
         this.game.state.start("Game", true, false, 1, 10, 3);
     },

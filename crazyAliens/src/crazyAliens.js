@@ -82,7 +82,7 @@ CrazyAliens.Preloader.prototype = {
     create: function () {
         if (game_mode === "seasonMode"){
             CrazyAliens.ChallengingFriend = true;
-            this.game.state.start("Game");
+            this.game.state.start("Game", true, false, 0, 1, 3);
         }else{
             this.game.state.start("MainMenu");
         }
@@ -298,8 +298,6 @@ CrazyAliens.Game = function (game) {
     this.projectilesArray = [];
     this.Debug = false;
 };
-
-
 
 CrazyAliens.Game.prototype = {
     init: function (sc, lvl, lives) {
