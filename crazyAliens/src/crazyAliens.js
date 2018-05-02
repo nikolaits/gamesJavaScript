@@ -80,10 +80,10 @@ CrazyAliens.Preloader.prototype = {
         }
     },
     create: function () {
-        if (game_mode === "seasonMode"){
+        if (game_mode === "seasonMode") {
             CrazyAliens.ChallengingFriend = true;
             this.game.state.start("Game", true, false, 0, 1, 3);
-        }else{
+        } else {
             this.game.state.start("MainMenu");
         }
     }
@@ -303,7 +303,7 @@ CrazyAliens.Game.prototype = {
     init: function (sc, lvl, lives) {
         this.level = lvl;
         this.lives = lives;
-        
+
         this.physics.startSystem(Phaser.Physics.P2JS);
         this.physics.p2.setImpactEvents(true);
 
@@ -336,6 +336,28 @@ CrazyAliens.Game.prototype = {
             tmp.name = i;
             tmp.scale.setTo(0.05);
             tmp.anchor.setTo(0.5);
+        }
+
+        if (CrazyAliens.friendChallenge) {
+            if (CrazyAliens.friendChallengeAlive) {
+                var posX = $(this.game.canvas).position().left + this.game.width;
+                var posY = $(this.game.canvas).position().top;
+                var canvas = document.createElement('canvas');
+
+                canvas.id = "gameMap";
+                canvas.width = this.game.width / 5;
+                canvas.height = this.game.height / 5;
+                canvas.style.position = "fixed";
+                canvas.style.border = "1px solid";
+                canvas.style.left = posX + "px";
+                canvas.style.top = posY + "px";
+                canvas.style.backgroundColor = "black";
+                canvas.getContext('2d').scale(0.2, 0.2);
+                $("body").append(canvas);
+            }
+
+            this.scoreFriend = this.game.add.bitmapText(this.game.width / 2, 25, "font", "Challenger Score: " + (CrazyAliens.friendScore).toString(), 28);
+            this.scoreFriend.anchor.set(0.5);
         }
 
         this.game.input.onDown.add(this.checkPauseButtons, this);
@@ -372,11 +394,20 @@ CrazyAliens.Game.prototype = {
         this.updateShip();
         this.updateEnemies();
         if (CrazyAliens.friendChallengeAlive) {
-            setTimeout(this.friendChallengeHandler, 300, [10, 20]);
+            setTimeout(this.friendChallengeHandler, 1000, [this.game.canvas.getContext('2d').getImageData(0, 0, this.game.width, this.game.height)]);
         }
     },
     friendChallengeHandler: function (args) {
-        //args[1].y = args[0];
+        if ($("#gameMap")[0]) {
+            var gameMap = $("#gameMap")[0].getContext('2d');
+            var imageData = args[0];
+            var newCanvas = $("<canvas>")
+                .attr("width", imageData.width)
+                .attr("height", imageData.height)[0];
+            newCanvas.getContext("2d").putImageData(imageData, 0, 0);
+
+            gameMap.drawImage(newCanvas, 0, 0);
+        }
     },
     paused: function () {
         if (!CrazyAliens.ChallengingFriend && !CrazyAliens.friendChallenge) {
@@ -500,6 +531,9 @@ CrazyAliens.Game.prototype = {
     },
     shipCollision: function (ship, proj) {
         this.ship.visible = false;
+        if (CrazyAliens.friendChallenge && CrazyAliens.friendChallengeAlive) {
+            $("#gameMap").remove();
+        }
         if (this.lives > 0) {
             this.state.restart(true, false, 0, this.level, this.lives - 1);
         } else {
@@ -626,6 +660,9 @@ CrazyAliens.Game.prototype = {
     checkForEndOfGame: function () {
         if (this.level % 10 != 0) {
             if (this.enemiesGroup.total <= 0) {
+                if (CrazyAliens.friendChallenge && CrazyAliens.friendChallengeAlive) {
+                    $("#gameMap").remove();
+                }
                 this.state.restart(true, false, 0, this.level + 1, this.lives);
             }
         }
@@ -687,6 +724,10 @@ CrazyAliens.Game.prototype = {
             if (CrazyAliens.score > CrazyAliens.friendScore && CrazyAliens.friendChallengeAlive) {
                 CrazyAliens.friendChallengeWin = true;
                 CrazyAliens.friendChallengeAlive = false;
+                $("#gameMap").remove();
+            }
+            if (CrazyAliens.friendChallenge && CrazyAliens.friendChallengeAlive) {
+                $("#gameMap").remove();
             }
 
             this.state.restart(true, false, 0, this.level + 1, this.lives);
@@ -708,6 +749,7 @@ CrazyAliens.Game.prototype = {
         if (CrazyAliens.score > CrazyAliens.friendScore && CrazyAliens.friendChallengeAlive) {
             CrazyAliens.friendChallengeWin = true;
             CrazyAliens.friendChallengeAlive = false;
+            $("#gameMap").remove();
         }
 
         var bom = this.enemyExplosion.getFirstAlive();
@@ -773,8 +815,8 @@ CrazyAliens.GameOver.prototype = {
             } else {
                 platform_tools("GameOver", CrazyAliens.score, 0, gameID, null, false);
             }
-        } else if (game_mode === "seasonMode"){
-            var virtualScore = CrazyAliens.score / game_score_weight * 100;            
+        } else if (game_mode === "seasonMode") {
+            var virtualScore = CrazyAliens.score / game_score_weight * 100;
             platform_tools("GameOver", virtualScore, 0, gameID, null, false);
         }
     },
@@ -789,9 +831,9 @@ CrazyAliens.GameOver.prototype = {
         CrazyAliens.ChallengingFriend = false;
         CrazyAliens.ChallengingName = "";
 
-        if(state==="Game"){
+        if (state === "Game") {
             this.game.state.start("Game", true, false, 0, 1, 3);
-        }else{
+        } else {
             this.game.state.start(state);
         }
     },
@@ -861,7 +903,7 @@ function start_crazyAliens(windowwidth, windowheight, container, assetsPath, arg
     this.game.state.start('Init');
 }
 
-function destroy_crazyAliens() {    
+function destroy_crazyAliens() {
     game_mode = "destroy";
     this.game.state.start("GameOver");
 
