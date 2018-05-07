@@ -64,10 +64,10 @@ SpaceFlight.Preloader.prototype = {
         }
     },
     create: function () {
-        if (game_mode === "seasonMode"){
+        if (game_mode === "seasonMode") {
             SpaceFlight.ChallengingFriend = true;
             this.game.state.start("Game");
-        }else{
+        } else {
             this.game.state.start("MainMenu");
         }
     }
@@ -338,6 +338,7 @@ SpaceFlight.Game = function () {
     this.lineWidth = 4;
     this.SpaceShipTurnSpeed = 200;
     this.collectibleDelay = 1200;
+    this.spaceShipFried = [];
 };
 
 SpaceFlight.Game.prototype = {
@@ -385,6 +386,9 @@ SpaceFlight.Game.prototype = {
         this.collectibleLoop = this.game.time.events.loop(this.collectibleDelay, function () {
             for (var i = 0; i < 2; i++) {
                 var collectible = new Collectible(game, i);
+                if (SpaceFlight.friendChallenge && SpaceFlight.friendChallengeAlive) {
+                    this.createMiniCollectible(collectible);
+                }
                 this.game.add.existing(collectible);
                 this.collectibleGroup.add(collectible);
                 collectible.missed.add(this.collectibleFail, this);
@@ -398,8 +402,37 @@ SpaceFlight.Game.prototype = {
             if (SpaceFlight.score > SpaceFlight.friendScore && SpaceFlight.friendChallengeAlive) {
                 SpaceFlight.friendChallengeWin = true;
                 SpaceFlight.friendChallengeAlive = false;
+
+                for (var i = 0; i < 2; i++) {
+                    var ship = this.spaceShipFried[i];
+                    var emittExplosion = this.game.add.emitter(ship.x, ship.y, 200);
+                    emittExplosion.makeParticles("particle");
+                    emittExplosion.gravity = 0;
+                    emittExplosion.setAlpha(0.2, 1);
+                    emittExplosion.minParticleScale = 0.5;
+                    emittExplosion.maxParticleScale = 3;
+                    emittExplosion.start(true, 2000, null, 200);
+                    ship.destroy();
+                }
+                this.game.add.audio("explosion").play();
             }
         }, this);
+
+        if (SpaceFlight.friendChallenge) {
+            for (var i = 0; i < 2; i++) {
+                this.spaceShipFried[i] = this.game.add.sprite(0, this.game.height - 20, "spaceship" + i);
+                this.spaceShipFried[i].positions = [(this.game.width + roadSeparator.width) / 2 * i + this.laneWidth / 2, (this.game.width + roadSeparator.width) / 2 * i + this.laneWidth + this.lineWidth + this.laneWidth / 2];
+                this.spaceShipFried[i].anchor.set(0.5);
+                this.spaceShipFried[i].side = i;
+                this.spaceShipFried[i].x = SpaceFlight.spaceships[i].positions[SpaceFlight.spaceships[i].side];
+                this.spaceShipFried[i].scale.set(0.6);
+                this.spaceShipFried[i].alpha = 0.5;
+            }
+
+            this.scoreFriend = this.game.add.bitmapText(this.game.width / 2, 25, "font", "Challenger Score: " + (SpaceFlight.friendScore).toString(), 28);
+            this.scoreFriend.anchor.set(0.5);
+            this.scoreFriend.tint = "0xff0000"
+        }
 
         this.pauseButton = this.game.add.button(this.game.width - 35, 40, "paused", function (e) {
             this.game.paused = true;
@@ -474,11 +507,29 @@ SpaceFlight.Game.prototype = {
             }
         }, null, this);
         if (SpaceFlight.friendChallengeAlive) {
-            setTimeout(this.friendChallengeHandler, 1000, [SpaceFlight.spaceships[0].x, SpaceFlight.spaceships[1].x]);
+            setTimeout(this.friendChallengeHandler, 900, [SpaceFlight.spaceships[0].x, SpaceFlight.spaceships[1].x, this.spaceShipFried]);
         }
     },
+    createMiniCollectible: function (args) {
+        var collectible = args;
+        var mini = this.game.add.sprite(collectible.x, collectible.y - 60, collectible.key);
+        game.physics.enable(mini, Phaser.Physics.ARCADE);
+        mini.body.velocity.y = SpaceFlight.collectibleSpeed;
+        mini.anchor.set(0.5);
+        mini.alpha = 0.5;
+        mini.scale.set(0.6);
+        mini.checkWorldBounds = true;
+        mini.events.onEnterBounds.add(function (e) {
+            e.events.onOutOfBounds.add(function (e) {
+                e.destroy();
+            }, this);
+        }, this);
+    },
     friendChallengeHandler: function (args) {
-        //implement friend logic
+        var spaceShipFried = args[2];
+
+        spaceShipFried[0].x = args[0];
+        spaceShipFried[1].x = args[1];
     },
     paused: function () {
         if (!SpaceFlight.ChallengingFriend && !SpaceFlight.friendChallenge) {
@@ -628,7 +679,6 @@ SpaceFlight.GameOver.prototype = {
 Collectible = function (game, lane) {
     var position = game.rnd.between(0, 1);
     this.mustPickUp = game.rnd.between(0, 1);
-
 
     if (lane === 0) {
         if (this.mustPickUp === 0) {

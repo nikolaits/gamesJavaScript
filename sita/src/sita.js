@@ -62,10 +62,10 @@ SITA.Preloader.prototype = {
         }
     },
     create: function () {
-        if (game_mode === "seasonMode"){
+        if (game_mode === "seasonMode") {
             SITA.ChallengingFriend = true;
             this.game.state.start("Game");
-        }else{
+        } else {
             this.game.state.start("MainMenu");
         }
     }
@@ -133,7 +133,7 @@ SITA.FriendsChallenges.prototype = {
         if (argsChallenges) {
             var friendsChallenges = argsChallenges;
             var index = 0;
-            var that = this;            
+            var that = this;
 
             friendsChallenges.forEach(function (e, i) {
                 if (i < 20) {
@@ -316,15 +316,37 @@ SITA.Game.prototype = {
         this.stick.scale = 0.7;
         this.stick.showOnTouch = true;
 
+        if (SITA.friendChallenge) {
+            if (SITA.friendChallengeAlive) {
+                var posX = $(this.game.canvas).position().left + this.game.width;
+                var posY = $(this.game.canvas).position().top;
+                var canvas = document.createElement('canvas');
+
+                canvas.id = "gameMap";
+                canvas.width = this.game.width / 5;
+                canvas.height = this.game.height / 5;
+                canvas.style.position = "fixed";
+                canvas.style.border = "1px solid";
+                canvas.style.left = posX + "px";
+                canvas.style.top = posY + "px";
+                canvas.style.backgroundColor = "black";
+                canvas.getContext('2d').scale(0.2, 0.2);
+                $("body").append(canvas);
+            }
+
+            this.scoreFriend = this.game.add.bitmapText(this.game.width / 2, 25, "font", "Challenger Score: " + (SITA.friendScore).toString(), 28);
+            this.scoreFriend.anchor.set(0.5);
+        }
+
         this.game.input.onDown.add(this.checkPauseButtons, this);
 
         this.pauseButton = this.game.add.button(this.game.width - 35, 40, "paused", function (e) {
-        this.game.paused = true;
+            this.game.paused = true;
         });
         this.pauseButton.anchor.set(0.5);
         this.pauseButton.scale.set(0.15);
         this.pauseButton.tint = "0xff0000";
-        if(SITA.ChallengingFriend || SITA.friendChallenge){
+        if (SITA.ChallengingFriend || SITA.friendChallenge) {
             this.pauseButton.visible = false;
         }
 
@@ -370,14 +392,23 @@ SITA.Game.prototype = {
             this.GameOver(this.player.x, this.player.y);
         }
         if (SITA.friendChallengeAlive) {
-            setTimeout(this.friendChallengeHandler, 300, [10, 20]);
+            setTimeout(this.friendChallengeHandler, 1000, [this.game.canvas.getContext('2d').getImageData(0, 0, this.game.width, this.game.height)]);
         }
     },
     friendChallengeHandler: function (args) {
-        //args[1].y = args[0];
+        if ($("#gameMap")[0]) {
+            var gameMap = $("#gameMap")[0].getContext('2d');
+            var imageData = args[0];
+            var newCanvas = $("<canvas>")
+                .attr("width", imageData.width)
+                .attr("height", imageData.height)[0];
+            newCanvas.getContext("2d").putImageData(imageData, 0, 0);
+
+            gameMap.drawImage(newCanvas, 0, 0);
+        }
     },
     paused: function () {
-        if(!SITA.ChallengingFriend && !SITA.friendChallenge){
+        if (!SITA.ChallengingFriend && !SITA.friendChallenge) {
             this.pauseImage.visible = true;
             this.resumeText.visible = true;
             this.saveGame.visible = true;
@@ -385,11 +416,11 @@ SITA.Game.prototype = {
         this.pausedTime = new Date();
     },
     resumed: function () {
-        if(!SITA.ChallengingFriend && !SITA.friendChallenge){
+        if (!SITA.ChallengingFriend && !SITA.friendChallenge) {
             this.pauseImage.visible = false;
             this.resumeText.visible = false;
             this.saveGame.visible = false;
-        }        
+        }
         var timeDifference = new Date().getTime() - this.pausedTime.getTime();
         this.totalTime += Math.abs(timeDifference / 1000);
     },
@@ -417,7 +448,7 @@ SITA.Game.prototype = {
 
             saveArray.score = SITA.score;
             saveArray.timeRemaining = timeRemaining;
-            
+
             platform_tools("SaveGame", SITA.score, 0, gameID, saveArray, false);
             Cookies.set('SITASaveGame', saveArray);
         }
@@ -442,6 +473,7 @@ SITA.Game.prototype = {
         if (SITA.score > SITA.friendScore && SITA.friendChallengeAlive) {
             SITA.friendChallengeWin = true;
             SITA.friendChallengeAlive = false;
+            $("#gameMap").remove();
         }
     },
     placeCollectable: function () {
@@ -540,6 +572,10 @@ SITA.Game.prototype = {
         this.add.tween(Exp4.scale).to({ x: 0.1, y: 100 }, 500, "Linear", true);
         this.add.tween(Exp4).to({ alpha: 0 }, 500, "Linear", true);
 
+        if (SITA.friendChallenge && SITA.friendChallengeAlive) {
+            $("#gameMap").remove();
+        }
+
         this.time.events.add(1000, this.GOS, this);
     },
     GOS: function () {
@@ -586,11 +622,11 @@ SITA.GameOver.prototype = {
 
             } else if (SITA.ChallengingFriend) {
                 this.game.add.bitmapText(this.game.width / 2, 220, "font", (SITA.ChallengingName).toString() + " challenged", 38).anchor.x = 0.5;
-                
+
                 var challengeArray = {};
                 challengeArray.username = SITA.ChallengingName;
                 challengeArray.useruid = SITA.friendUID;
-                
+
                 platform_tools("ChallengeFriend", SITA.score, 0, gameID, challengeArray, false);
 
             } else if (SITA.score >= game_score_weight) {
@@ -598,7 +634,7 @@ SITA.GameOver.prototype = {
             } else {
                 platform_tools("GameOver", SITA.score, 0, gameID, null, false);
             }
-        } else if (game_mode === "seasonMode"){
+        } else if (game_mode === "seasonMode") {
             var virtualScore = SITA.score / game_score_weight * 100;
             platform_tools("GameOver", virtualScore, 0, gameID, null, false);
         }
@@ -606,12 +642,12 @@ SITA.GameOver.prototype = {
     startGame: function (state) {
         SITA.score = 0;
         SITA.timeRemaining = 11;
-        SITA.friendChallenge = false;   
+        SITA.friendChallenge = false;
         SITA.friendName = "";
         SITA.friendUID = "";
         SITA.friendScore = 0;
         SITA.friendChallengeWin = false;
-        SITA.friendChallengeAlive = false;        
+        SITA.friendChallengeAlive = false;
         SITA.ChallengingFriend = false;
         SITA.ChallengingName = "";
 
@@ -689,12 +725,12 @@ function destroy_sita() {
 
     SITA.score = 0;
     SITA.timeRemaining = 11;
-    SITA.friendChallenge = false;   
+    SITA.friendChallenge = false;
     SITA.friendName = "";
     SITA.friendUID = "";
     SITA.friendScore = 0;
     SITA.friendChallengeWin = false;
-    SITA.friendChallengeAlive = false;        
+    SITA.friendChallengeAlive = false;
     SITA.ChallengingFriend = false;
     SITA.ChallengingName = "";
 

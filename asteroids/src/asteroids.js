@@ -73,10 +73,10 @@ Asteroids.Preloader.prototype = {
         }
     },
     create: function () {
-        if (game_mode === "seasonMode"){
+        if (game_mode === "seasonMode") {
             Asteroids.ChallengingFriend = true;
             this.game.state.start("Game", true, false, 1, 10, 3);
-        }else{
+        } else {
             this.game.state.start("MainMenu");
         }
     }
@@ -313,6 +313,28 @@ Asteroids.Game.prototype = {
         this.earth.body.collides(this.asteroidsCollisionGroup, this.DestroyShip, this);
         this.earth.body.collides(this.asteroids2CollisionGroup, this.DestroyShip, this);
 
+        if (Asteroids.friendChallenge) {
+            if (Asteroids.friendChallengeAlive) {
+                var posX = $(this.game.canvas).position().left + this.game.width;
+                var posY = $(this.game.canvas).position().top;
+                var canvas = document.createElement('canvas');
+
+                canvas.id = "gameMap";
+                canvas.width = this.game.width / 5;
+                canvas.height = this.game.height / 5;
+                canvas.style.position = "fixed";
+                canvas.style.border = "1px solid";
+                canvas.style.left = posX + "px";
+                canvas.style.top = posY + "px";
+                canvas.style.backgroundColor = "black";
+                canvas.getContext('2d').scale(0.2, 0.2);
+                $("body").append(canvas);
+            }
+
+            this.scoreFriend = this.game.add.bitmapText(this.game.width / 2, 40, "font", "Challenger Score: " + (Asteroids.friendScore).toString(), 20);
+            this.scoreFriend.anchor.set(0.5);
+        }
+
         this.game.input.onDown.add(this.checkPauseButtons, this);
 
         this.pauseButton = this.game.add.button(this.game.width - 35, 40, "paused", function (e) {
@@ -349,16 +371,25 @@ Asteroids.Game.prototype = {
     },
     update: function () {
         this.UpdateShip();
-        this.UpdateAsteroids();        
+        this.UpdateAsteroids();
         if (Asteroids.friendChallengeAlive) {
-            setTimeout(this.friendChallengeHandler, 300, [10, 20]);
+            setTimeout(this.friendChallengeHandler, 1000, [this.game.canvas.getContext('2d').getImageData(0, 0, this.game.width, this.game.height)]);
         }
     },
     friendChallengeHandler: function (args) {
-        //args[1].y = args[0];
+        if ($("#gameMap")[0]) {
+            var gameMap = $("#gameMap")[0].getContext('2d');
+            var imageData = args[0];
+            var newCanvas = $("<canvas>")
+                .attr("width", imageData.width)
+                .attr("height", imageData.height)[0];
+            newCanvas.getContext("2d").putImageData(imageData, 0, 0);
+
+            gameMap.drawImage(newCanvas, 0, 0);
+        }
     },
     paused: function () {
-        if(!Asteroids.ChallengingFriend && !Asteroids.friendChallenge){
+        if (!Asteroids.ChallengingFriend && !Asteroids.friendChallenge) {
             this.pauseImage.visible = true;
             this.resumeText.visible = true;
             this.saveGame.visible = true;
@@ -366,11 +397,11 @@ Asteroids.Game.prototype = {
         this.pausedTime = new Date();
     },
     resumed: function () {
-        if(!Asteroids.ChallengingFriend && !Asteroids.friendChallenge){
+        if (!Asteroids.ChallengingFriend && !Asteroids.friendChallenge) {
             this.pauseImage.visible = false;
             this.resumeText.visible = false;
             this.saveGame.visible = false;
-        }        
+        }
         var timeDifference = new Date().getTime() - this.pausedTime.getTime();
         this.totalTime += Math.abs(timeDifference / 1000);
     },
@@ -400,7 +431,7 @@ Asteroids.Game.prototype = {
             saveArray.livesRemaining = this.Lives;
             saveArray.curLvl = this.Level;
             saveArray.curMaxAsteroids = this.maxAsteroids;
-            
+
             platform_tools("SaveGame", Asteroids.score, 0, gameID, saveArray, false);
             Cookies.set('AsteroidsSaveGame', saveArray);
         }
@@ -446,6 +477,9 @@ Asteroids.Game.prototype = {
     DestroyShip: function (s, a) {
         a.x = -200;
         s.x = -200;
+        if (Asteroids.friendChallenge && Asteroids.friendChallengeAlive) {
+            $("#gameMap").remove();
+        }
         if (this.Lives - 1 < 0) {
             this.state.start('GameOver');
         } else {
@@ -525,9 +559,13 @@ Asteroids.Game.prototype = {
         if (Asteroids.score > Asteroids.friendScore && Asteroids.friendChallengeAlive) {
             Asteroids.friendChallengeWin = true;
             Asteroids.friendChallengeAlive = false;
+            $("#gameMap").remove();
         }
 
         if (this.NumberAsteroids >= this.maxAsteroids) {
+            if (Asteroids.friendChallenge && Asteroids.friendChallengeAlive) {
+                $("#gameMap").remove();
+            }
             this.state.restart(true, false, this.Level + 1, this.maxAsteroids + 10, this.Lives)
         }
     },
@@ -546,9 +584,13 @@ Asteroids.Game.prototype = {
             if (Asteroids.score > Asteroids.friendScore && Asteroids.friendChallengeAlive) {
                 Asteroids.friendChallengeWin = true;
                 Asteroids.friendChallengeAlive = false;
+                $("#gameMap").remove();
             }
 
             if (this.NumberAsteroids >= this.maxAsteroids) {
+                if (Asteroids.friendChallenge && Asteroids.friendChallengeAlive) {
+                    $("#gameMap").remove();
+                }
                 this.state.restart(true, false, this.Level + 1, this.maxAsteroids + 10, this.Lives)
             }
         }
@@ -618,6 +660,9 @@ Asteroids.Game.prototype = {
         }
     },
     HitPlanet: function (a) {
+        if (Asteroids.friendChallenge && Asteroids.friendChallengeAlive) {
+            $("#gameMap").remove();
+        }
         if (this.Lives - 1 < 0) {
             this.state.start('GameOver');
         } else {
@@ -722,7 +767,7 @@ Asteroids.GameOver.prototype = {
             } else {
                 platform_tools("GameOver", Asteroids.score, 0, gameID, null, false);
             }
-        } else if (game_mode === "seasonMode"){
+        } else if (game_mode === "seasonMode") {
             var virtualScore = Asteroids.score / game_score_weight * 100;
             platform_tools("GameOver", virtualScore, 0, gameID, null, false);
         }
@@ -738,9 +783,9 @@ Asteroids.GameOver.prototype = {
         Asteroids.ChallengingFriend = false;
         Asteroids.ChallengingName = "";
 
-        if(state==="Game"){
+        if (state === "Game") {
             this.game.state.start("Game", true, false, 1, 10, 3);
-        }else{
+        } else {
             this.game.state.start(state);
         }
     },
