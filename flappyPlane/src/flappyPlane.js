@@ -16,6 +16,7 @@ FlappyPlane.Init = function () { };
 FlappyPlane.Init.prototype = {
     preload: function () {
         this.game.load.image("loading", assets_path + "assets/sprites/loading.png");
+        this.game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
     },
     create: function () {
         this.game.state.start("Preloader");
