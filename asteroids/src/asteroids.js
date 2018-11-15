@@ -17,6 +17,16 @@ Asteroids.Init.prototype = {
 
     preload: function () {
         this.game.load.image("loading", assets_path + "assets/sprites/loading.png");
+        this.game.scale.scaleMode = 4;
+
+        var userScaleX = (window.innerWidth / this.game.width) - 0.01;
+        var userScaleY = (window.innerHeight / this.game.height) - 0.01;
+        
+        if(userScaleX < userScaleY){
+            this.game.scale.setUserScale(userScaleX, userScaleX);
+        } else {
+            this.game.scale.setUserScale(userScaleY, userScaleY);
+        }
     },
 
     create: function () {
